@@ -1,0 +1,13 @@
+{
+    "name": "utm/books-api",
+    "authors": [
+        {
+            "name": "mayleegit",
+            "email": "leemayyan@graduate.utm.my"
+        }
+    ],
+    "require": {
+        "slim/slim": "4.*",
+        "slim/psr7": "^1.8"
+    }
+}
