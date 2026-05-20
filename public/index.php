@@ -1,18 +1,14 @@
-<?php
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Factory\AppFactory;
+<?php 
+use Slim\Factory\AppFactory; 
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php'; 
+  
+$app = AppFactory::create(); 
+$app->add(new App\Middleware\JsonBodyParser());   // ← Step 13 
+$app->add(new App\Middleware\Cors());             // ← Step 14 
+$app->addRoutingMiddleware(); 
+$app->addErrorMiddleware(true, true, true); 
 
-$app = AppFactory::create();
-
-$app->addRoutingMiddleware();
-$app->addErrorMiddleware(true, true, true);
-
-$app->get('/', function (Request $req, Response $res) {
-    $res->getBody()->write('Hello, Slim!');
-    return $res;
-});
-
+(require __DIR__ . '/../src/routes.php')($app); 
+  
 $app->run();
