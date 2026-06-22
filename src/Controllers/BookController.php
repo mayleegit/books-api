@@ -1,131 +1,153 @@
 <?php
+
 namespace App\Controllers;
 
+use App\Repositories\AuditLogRepository;
+use App\Repositories\BookRepository;
+use App\Validation\Validator;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 final class BookController
 {
-    private static array $books = [];
+    public function __construct(
+        private BookRepository $books,
+        private AuditLogRepository $audit
+    ) {
+    }
 
-    private static function bootstrap(): void
+    public function index(Request $request, Response $response): Response
     {
-        if (self::$books === []) {
-            self::$books = require __DIR__ . '/../Data/books.php'; 
-        }
+        $params = $request->getQueryParams();
+        $rows = $this->books->all(
+            (string) ($params['q'] ?? ''),
+            (int) ($params['limit'] ?? 0)
+        );
+
+        return $this->json($response, [
+            'count' => count($rows),
+            'data' => $rows,
+        ]);
     }
 
-    /** GET /api/books  — supports ?q= and ?limit= */ 
-    public function index(Request $req, Response $res): Response 
+    public function show(Request $request, Response $response, array $args): Response
     {
-        self::bootstrap();
-        $params = $req->getQueryParams();
-        $items  = self::$books;
+        $id = (int) ($args['id'] ?? 0);
+        $book = $this->books->find($id);
 
-        if (!empty($params['q'])) {
-            $q = mb_strtolower((string)$params['q']); 
-            $items = array_values(array_filter($items, fn($b) => 
-                str_contains(mb_strtolower($b['title']),  $q) || 
-                str_contains(mb_strtolower($b['author']), $q) 
-            ));
-        }
-        if (!empty($params['limit'])) {
-            $items = array_slice($items, 0, max(1, (int)$params['limit'])); 
-        }
-        return $this->json($res, ['count' => count($items), 'data' => $items]);
+        if ($book === null) {
+            return $this->json($response, ['error' => "Book {$id} not found"], 404);
         }
 
-    /** GET /api/books/{id} */
-    public function show(Request $req, Response $res, array $args): Response 
-    { 
-        self::bootstrap();
-        $id = (int)($args['id'] ?? 0);
-        $book = $this->findById($id);
-        return $book
-            ? $this->json($res, $book)
-            : $this->json($res, ['error' => "Book {$id} not found"], 404); 
+        return $this->json($response, $book);
     }
 
-    /** POST /api/books */ 
-    public function create(Request $req, Response $res): Response 
-    { 
-        self::bootstrap(); 
-        $body = (array)($req->getParsedBody() ?? []); 
-        $errors = $this->validate($body, requireAll: true); 
-        if (!empty($errors)) { 
-            return $this->json($res, ['errors' => $errors], 400);
-        }
-        $id = (max(array_column(self::$books, 'id') ?: [0])) + 1;
-        $book = [ 
-            'id'     => $id, 
-            'title'  => trim($body['title']),
-            'author' => trim($body['author']),
-            'year'   => (int)$body['year'],
-            'genre'  => trim((string)($body['genre'] ?? 'Uncategorised')),
-        ]; 
-        self::$books[] = $book; 
-        return $this->json($res, ['message' => 'Book created', 'data' => $book], 201)
-                    ->withHeader('Location', '/api/books/' . $id);
-    }
-
-    /** PUT /api/books/{id} — full or partial update */
-    public function update(Request $req, Response $res, array $args): Response
+    public function create(Request $request, Response $response): Response
     {
-        self::bootstrap();
-        $id  = (int)($args['id'] ?? 0);
-        $idx = $this->findIndexById($id);
-        if ($idx === null) return $this->json($res, ['error' => "Book {$id} not found"], 404); 
+        $auth = (array) $request->getAttribute('auth', []);
+        $actorId = (int) ($auth['sub'] ?? 0);
+        $body = (array) ($request->getParsedBody() ?? []);
 
-        $body   = (array)($req->getParsedBody() ?? []);
-        $errors = $this->validate($body, requireAll: false);
-        if (!empty($errors)) return $this->json($res, ['errors' => $errors], 400);
-
-        $current = self::$books[$idx];
-        foreach (['title','author','genre'] as $k) {
-            if (array_key_exists($k, $body)) $current[$k] = trim((string)$body[$k]); 
-        } 
-        if (array_key_exists('year', $body)) $current['year'] = (int)$body['year']; 
-        self::$books[$idx] = $current; 
-        return $this->json($res, ['message' => 'Book updated', 'data' => $current]); 
-    } 
-  
-    /** DELETE /api/books/{id} */ 
-    public function delete(Request $req, Response $res, array $args): Response 
-    {
-        self::bootstrap(); 
-        $id  = (int)($args['id'] ?? 0); 
-        $idx = $this->findIndexById($id); 
-        if ($idx === null) return $this->json($res, ['error' => "Book {$id} not found"], 404); 
-        $deleted = self::$books[$idx]; 
-        array_splice(self::$books, $idx, 1); 
-        return $this->json($res, ['message' => 'Book deleted', 'data' => $deleted]); 
-    }
-    private function findById(int $id): ?array { 
-        foreach (self::$books as $b) if ($b['id'] === $id) return $b; 
-        return null;
-    } 
-    private function findIndexById(int $id): ?int { 
-        foreach (self::$books as $i => $b) if ($b['id'] === $id) return $i; 
-        return null; 
-    } 
-    private function validate(array $body, bool $requireAll): array { 
-        $errors = []; 
-        $rules = [
-            'title'  => fn($v) => is_string($v) && trim($v) !== '',
-            'author' => fn($v) => is_string($v) && trim($v) !== '',
-            'year'   => fn($v) => is_numeric($v) && (int)$v >= 1000 && (int)$v <= (int)date('Y'),
-        ];
-        foreach ($rules as $f => $check) {
-            if ($requireAll && !array_key_exists($f, $body)) { $errors[$f]="$f is required"; 
-continue; } 
-            if (array_key_exists($f, $body) && !$check($body[$f])) $errors[$f] = "$f is 
-invalid"; 
-        } 
-        return $errors; 
-    } 
-    private function json(Response $res, mixed $data, int $status = 200): Response { 
-        $res->getBody()->write(json_encode($data, JSON_PRETTY_PRINT)); 
-        return $res->withHeader('Content-Type','application/json; charset=utf-8')
-                ->withStatus($status);
+        $errors = $this->bookValidator()->validate($body);
+        if (!empty($errors)) {
+            return $this->json($response, ['errors' => $errors], 400);
         }
+
+        $id = $this->books->create($body, $actorId);
+        $this->audit->record($actorId, 'book.create', 'books/' . $id, $this->ip($request));
+
+        return $this->json($response, [
+            'message' => 'Book created',
+            'data' => $this->books->find($id),
+        ], 201)->withHeader('Location', '/api/books/' . $id);
     }
+
+    public function update(Request $request, Response $response, array $args): Response
+    {
+        $id = (int) ($args['id'] ?? 0);
+        $book = $this->books->find($id);
+
+        if ($book === null) {
+            return $this->json($response, ['error' => "Book {$id} not found"], 404);
+        }
+
+        $auth = (array) $request->getAttribute('auth', []);
+        $actorId = (int) ($auth['sub'] ?? 0);
+        $isOwner = (int) ($book['created_by'] ?? 0) === $actorId;
+        $isAdmin = ($auth['role'] ?? 'member') === 'admin';
+
+        if (!$isOwner && !$isAdmin) {
+            $this->audit->record($actorId, 'book.update.forbidden', 'books/' . $id, $this->ip($request));
+            return $this->json($response, ['error' => 'Forbidden'], 403);
+        }
+
+        $body = (array) ($request->getParsedBody() ?? []);
+        $errors = $this->bookValidator()->validate($body, partial: true);
+
+        if (!empty($errors)) {
+            return $this->json($response, ['errors' => $errors], 400);
+        }
+
+        $this->books->update($id, $body);
+        $this->audit->record($actorId, 'book.update', 'books/' . $id, $this->ip($request));
+
+        return $this->json($response, [
+            'message' => 'Book updated',
+            'data' => $this->books->find($id),
+        ]);
+    }
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+        $auth = (array) $request->getAttribute('auth', []);
+        $actorId = (int) ($auth['sub'] ?? 0);
+
+        if (($auth['role'] ?? 'member') !== 'admin') {
+            $this->audit->record($actorId, 'book.delete.forbidden', null, $this->ip($request));
+            return $this->json($response, ['error' => 'Admins only'], 403);
+        }
+
+        $id = (int) ($args['id'] ?? 0);
+        $book = $this->books->find($id);
+
+        if ($book === null) {
+            return $this->json($response, ['error' => "Book {$id} not found"], 404);
+        }
+
+        $this->books->delete($id);
+        $this->audit->record($actorId, 'book.delete', 'books/' . $id, $this->ip($request));
+
+        return $this->json($response, [
+            'message' => 'Book deleted',
+            'data' => $book,
+        ]);
+    }
+
+    private function bookValidator(): Validator
+    {
+        return (new Validator())
+            ->required('title', 'author', 'year')
+            ->field('title', Validator::nonEmptyString(200), 'title must be 1-200 chars')
+            ->field('author', Validator::nonEmptyString(150), 'author must be 1-150 chars')
+            ->field('year', Validator::intRange(1000, (int) date('Y')), 'year must be 1000..now')
+            ->field('genre', Validator::nonEmptyString(80), 'genre must be ≤ 80 chars');
+    }
+
+    private function ip(Request $request): string
+    {
+        return (string) ($request->getServerParams()['REMOTE_ADDR'] ?? 'unknown');
+    }
+
+    private function json(Response $response, mixed $data, int $status = 200): Response
+    {
+        $response->getBody()->write(json_encode(
+            $data,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
+            | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+        ));
+
+        return $response
+            ->withHeader('Content-Type', 'application/json; charset=utf-8')
+            ->withStatus($status);
+    }
+}

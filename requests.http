@@ -1,0 +1,104 @@
+@base = http://localhost:8000
+@memberToken = paste_member_token_here
+@adminToken = paste_admin_token_here
+
+### Health / API info
+GET {{base}}/
+
+### Public books
+GET {{base}}/api/books
+
+### Login as member
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "member@books.test",
+  "password": "password"
+}
+
+### Login as admin
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@books.test",
+  "password": "password"
+}
+
+### Current user
+GET {{base}}/auth/me
+Authorization: Bearer {{memberToken}}
+
+### Create book as member
+POST {{base}}/api/books
+Authorization: Bearer {{memberToken}}
+Content-Type: application/json
+
+{
+  "title": "Refactoring",
+  "author": "Martin Fowler",
+  "year": 2018,
+  "genre": "Software Engineering"
+}
+
+### Chapter 12 validation test: future year should return 400
+POST {{base}}/api/books
+Authorization: Bearer {{memberToken}}
+Content-Type: application/json
+
+{
+  "title": "Future Book",
+  "author": "X",
+  "year": 9999
+}
+
+### Chapter 12 XSS-safe output test
+POST {{base}}/api/books
+Authorization: Bearer {{memberToken}}
+Content-Type: application/json
+
+{
+  "title": "<script>alert('hi')</script>",
+  "author": "X",
+  "year": 2024
+}
+
+### Chapter 12 IDOR test: member tries to update admin-owned book 1, expect 403
+PUT {{base}}/api/books/1
+Authorization: Bearer {{memberToken}}
+Content-Type: application/json
+
+{
+  "title": "Hijacked"
+}
+
+### Chapter 12 admin update: expect 200
+PUT {{base}}/api/books/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Clean Code Updated"
+}
+
+### Chapter 12 rate limit: run 6 times with wrong password; 6th should be 429
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@books.test",
+  "password": "wrong"
+}
+
+### Chapter 12 CORS allowed origin preflight
+OPTIONS {{base}}/api/books
+Origin: http://localhost:5173
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: Authorization, Content-Type
+
+### Chapter 12 CORS attacker origin preflight
+OPTIONS {{base}}/api/books
+Origin: http://attacker.example
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: Authorization, Content-Type

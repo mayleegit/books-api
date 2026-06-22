@@ -9,10 +9,12 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 final class JsonBodyParser implements MiddlewareInterface
 {
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-    {
+    public function process(
+        ServerRequestInterface $request,
+        RequestHandlerInterface $handler
+    ): ResponseInterface {
         if (stripos($request->getHeaderLine('Content-Type'), 'application/json') === 0) {
-            $raw = (string)$request->getBody();
+            $raw = (string) $request->getBody();
             $decoded = $raw === '' ? [] : json_decode($raw, true);
 
             if (!is_array($decoded)) {

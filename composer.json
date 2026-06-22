@@ -1,17 +1,17 @@
 {
-    "name": "utm/books-api", 
-    "authors": [
-        {
-            "name": "mayleegit",
-            "email": "leemayyan@graduate.utm.my"
-
-        }
-    ],
-    "require": { 
-        "slim/slim": "4.*", 
-        "slim/psr7": "^1.6" 
-    }, 
-    "autoload": {
-        "psr-4": { "App\\": "src/" } 
-    } 
+  "name": "utm/books-api-secure",
+  "description": "SCSM2223 Chapter 12 Books REST API with PDO MySQL, JWT authentication, and backend security hardening",
+  "type": "project",
+  "require": {
+    "php": ">=8.1",
+    "slim/slim": "4.*",
+    "slim/psr7": "^1.6",
+    "vlucas/phpdotenv": "^5.6",
+    "firebase/php-jwt": "^7.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  }
 }
