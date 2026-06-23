@@ -1,30 +1,4 @@
 <script setup>
-/**
- * BookList — Chapter 12.
- *
- * What's new vs Chapter 11:
- *
- * IDOR awareness
- *   The Ch12 API returns `created_by` (user id) on every book row.
- *   The Edit button is now shown only when the signed-in user owns the book
- *   OR is an admin.  Attempting a PUT on a book you don't own would return
- *   403 anyway — this just gives honest UI feedback upfront.
- *   A "yours" badge is shown on books the current user created.
- *
- * Field-level validation errors
- *   A 400 from POST/PUT now carries { errors: { field: "message" } }.
- *   Those are forwarded to <BookForm> as `fieldErrors` so each field can
- *   display its own inline error.
- *
- * 403 IDOR message
- *   If a PUT/DELETE is rejected with 403 (e.g. concurrent ownership change),
- *   a clear "You don't own that book" message is shown.
- *
- * XSS safety
- *   All book data is rendered with {{ }} interpolation — NEVER v-html.
- *   Vue auto-escapes; the backend also applies JSON_HEX_TAG etc. as a
- *   second layer of defence.
- */
 
 import { ref, onMounted } from 'vue';
 import api from '../api/client';
