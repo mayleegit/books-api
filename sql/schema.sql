@@ -55,3 +55,8 @@ INSERT INTO books (title, author, year, genre, created_by) VALUES
   ('Clean Code', 'Robert C. Martin', 2008, 'Software Engineering', 1),
   ('Eloquent JavaScript', 'Marijn Haverbeke', 2018, 'Programming', 2),
   ('Vue.js 3 By Example', 'John Au-Yeung', 2021, 'Web Development', 1);
+  
+-- Reset seeded demo users password to: password
+UPDATE users
+SET password_hash = '$2y$12$vGYQHit3v6Xx.2o.M8u7veMYQvxK3G6m5/GQ4U8ty0YqyxdsPEWfa'
+WHERE email IN ('admin@books.test', 'member@books.test');
