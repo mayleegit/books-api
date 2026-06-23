@@ -18,7 +18,6 @@ function logout() {
     <RouterLink to="/">Books</RouterLink>
     <RouterLink v-if="auth.isAuthenticated" to="/me">My account</RouterLink>
     <RouterLink v-else to="/login">Login</RouterLink>
-    <span class="badge">Chapter 12 • Security</span>
 
     <span v-if="auth.isAuthenticated" class="me">
       {{ auth.user?.name }}
