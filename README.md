@@ -1,71 +1,161 @@
-# Books API — Chapter 12 Secure Version
+# UTM Books
 
-This folder contains the Chapter 12 version of the SCSM2223 Books API.
-It includes the Chapter 11 JWT backend, the Vue frontend, and Chapter 12 security hardening.
+A full-stack book management system built with Vue 3, PHP Slim Framework, MySQL, JWT Authentication, and Capacitor Android.
 
-## Included features
+## Features
 
-- PHP Slim 4 REST API
-- PDO + MySQL database
-- JWT register/login/authentication
-- Vue 3 + Vite frontend UI
-- Validator helper for strict input validation
-- XSS-safe JSON encoding
-- Security HTTP headers
-- Rate limiting on `/auth/login`
-- CORS allow-list
-- `created_by` owner column and IDOR protection on update
-- `audit_log` table and audit records
+### Authentication & Security
 
-## Run backend
+* User registration
+* User login with JWT authentication
+* Protected API endpoints
+* Role-based access control (Admin / Member)
+* Rate limiting on login attempts
+* Security headers
+* Audit logging
 
-```bat
-cd C:\laragon\www\books-api-secure
+### Book Management
+
+* View all books
+* Search books by title or author
+* Create new books
+* Edit owned books
+* Delete books (Admin only)
+
+### User Profile
+
+* View account information
+* View user role
+* View registration date
+
+### Deployment
+
+* Frontend deployed on Vercel
+* Backend deployed on Railway
+* MySQL database hosted on Railway
+
+### Mobile Support
+
+* Capacitor Android integration
+* Android Studio deployment support
+
+---
+
+## Tech Stack
+
+### Frontend
+
+* Vue 3
+* Vue Router
+* Pinia
+* Axios
+* Vite
+
+### Backend
+
+* PHP 8
+* Slim Framework 4
+* Firebase PHP JWT
+
+### Database
+
+* MySQL
+
+### Deployment
+
+* Vercel
+* Railway
+
+---
+
+## Demo Accounts
+
+### Admin
+
+Email:
+[admin@books.test](mailto:admin@books.test)
+
+Password:
+password
+
+### Member
+
+Email:
+[member@books.test](mailto:member@books.test)
+
+Password:
+password
+
+---
+
+## Local Setup
+
+### Backend
+
+```bash
 composer install
-composer dump-autoload
-mysql -u root < sql/schema.sql
 php -S localhost:8000 -t public
 ```
 
-Backend URL:
+### Frontend
 
-```text
-http://localhost:8000
-```
-
-## Run frontend
-
-Open a second terminal:
-
-```bat
-cd C:\laragon\www\books-api-secure\frontend
+```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-Frontend URL:
+---
+
+## Production URLs
+
+Frontend:
+https://utm-books-murex.vercel.app
+
+Backend:
+https://books-api-production-3a35.up.railway.app
+
+---
+
+## Android Build
+
+```bash
+cd frontend
+
+npm install
+npm run build
+
+npx cap sync android
+npx cap open android
+```
+
+Run the project using Android Studio emulator or a physical Android device.
+
+---
+
+## Project Structure
 
 ```text
-http://localhost:5173
+books-api/
+│
+├── public/
+├── src/
+├── sql/
+├── frontend/
+│   ├── src/
+│   ├── android/
+│   └── capacitor.config.json
+│
+├── composer.json
+└── README.md
 ```
 
-## Demo users
+---
 
-```text
-Admin:  admin@books.test  / password
-Member: member@books.test / password
-```
+## Author
 
-Admin can delete books. Member can create books and update only books they own.
+May Yan
 
-## If login says invalid password
+Universiti Teknologi Malaysia (UTM)
 
-Run this to reset demo passwords to `password`:
-
-```bat
-mysql -u root -e "USE books_api; UPDATE users SET password_hash='$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi' WHERE email IN ('admin@books.test','member@books.test');"
-```
-
-## If PDO says could not find driver
-
-Open `Fix_PDO_MySQL_Driver.md` and enable `pdo_mysql` in the same `php.ini` used by Laragon Terminal.
+Chapter 12 & Chapter 13 Lab Project
