@@ -1,13 +1,5 @@
 <script setup>
-/**
- * BookForm — Chapter 12.
- *
- * What's new vs Chapter 11:
- *  - Accepts a `fieldErrors` prop (object keyed by field name).
- *  - Shows an inline error message below each field when the API returns
- *    a 400 with { errors: { title: "...", year: "..." } }.
- *  - Highlights the offending input with a red border (.field-error class).
- */
+
 import { ref, watchEffect } from 'vue';
 
 const props = defineProps({
