@@ -14,7 +14,7 @@ function logout() {
 
 <template>
   <header>
-    <h1>📚 Books API</h1>
+    <h1>📚 UTM Books</h1>
     <RouterLink to="/">Books</RouterLink>
     <RouterLink v-if="auth.isAuthenticated" to="/profile">My account</RouterLink>
     <RouterLink v-else to="/login">Login</RouterLink>
