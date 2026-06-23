@@ -56,6 +56,7 @@ return function (App $app): void {
 
     // Protected auth route
     $app->get('/auth/me', [$authController, 'me'])->add($auth);
+    $app->get('/auth/profile', [$authController, 'me'])->add($auth);
 
     // Protected book write routes
     $app->group('/api/books', function ($group) use ($bookController) {

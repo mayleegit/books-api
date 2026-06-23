@@ -7,7 +7,7 @@ const error = ref('');
 
 onMounted(async () => {
   try {
-    const { data } = await api.get('/auth/me');
+    const { data } = await api.get('/auth/profile');
     me.value = data;
   } catch (e) {
     error.value = e.response?.data?.error || e.message;

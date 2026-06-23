@@ -77,16 +77,15 @@ final class AuthController
         ]);
     }
 
-    public function me(Request $request, Response $response): Response
+    public function me(Request $r, Response $s): Response
     {
-        $auth = (array) $request->getAttribute('auth', []);
-        $user = $this->users->findById((int) ($auth['sub'] ?? 0));
+        $auth = (array) $r->getAttribute('auth', []);
 
-        if ($user === null) {
-            return $this->json($response, ['error' => 'Not found'], 404);
-        }
+        $user = $this->users->findById((int)($auth['sub'] ?? 0));
 
-        return $this->json($response, $user);
+        return $user
+            ? $this->json($s, $user)
+            : $this->json($s, ['error' => 'Not found'], 404);
     }
 
     private function ip(Request $request): string

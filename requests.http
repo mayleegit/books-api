@@ -27,7 +27,7 @@ Content-Type: application/json
 }
 
 ### Current user
-GET {{base}}/auth/me
+GET {{base}}/auth/profile
 Authorization: Bearer {{memberToken}}
 
 ### Create book as member
