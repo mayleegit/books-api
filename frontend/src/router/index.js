@@ -7,7 +7,7 @@ const router = createRouter({
     { path: '/',         name: 'books',    component: () => import('../views/BookList.vue') },
     { path: '/login',    name: 'login',    component: () => import('../views/Login.vue') },
     { path: '/register', name: 'register', component: () => import('../views/Register.vue') },
-    { path: '/me',       name: 'me',       component: () => import('../views/Me.vue'),
+    { path: '/profile',       name: 'profile',       component: () => import('../views/Profile.vue'),
       meta: { requiresAuth: true } },
   ],
 });

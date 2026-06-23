@@ -16,10 +16,10 @@ function logout() {
   <header>
     <h1>📚 Books API</h1>
     <RouterLink to="/">Books</RouterLink>
-    <RouterLink v-if="auth.isAuthenticated" to="/me">My account</RouterLink>
+    <RouterLink v-if="auth.isAuthenticated" to="/profile">My account</RouterLink>
     <RouterLink v-else to="/login">Login</RouterLink>
 
-    <span v-if="auth.isAuthenticated" class="me">
+    <span v-if="auth.isAuthenticated" class="profile">
       {{ auth.user?.name }}
       <span class="tag" :class="auth.isAdmin ? 'admin' : 'member'">{{ auth.user?.role }}</span>
     </span>
